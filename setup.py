@@ -12,7 +12,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name="elevenlabs-srt-generator",
-    version="1.1.0",
+    version="1.2.0",
     author="Script Force Alignment Contributors",
     author_email="",
     description="Generate synchronized SRT subtitles using ElevenLabs Force Alignment API with AI-powered semantic segmentation",
@@ -42,7 +42,7 @@ setup(
         "Programming Language :: Python :: 3.12",
     ],
     keywords="subtitles srt elevenlabs force-alignment speech-to-text transcription ai gemini bilingual",
-    py_modules=["main"],
+    py_modules=["script_force_alignment"],
     python_requires=">=3.7",
     install_requires=[
         "requests>=2.31.0",
@@ -61,7 +61,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "elevenlabs-srt=main:cli",
+            "elevenlabs-srt=script_force_alignment:cli",
         ],
     },
     include_package_data=True,

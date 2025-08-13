@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "elevenlabs-srt-generator"
-version = "1.1.0"
+version = "1.2.0"
 authors = [
     {name = "Script Force Alignment Contributors"},
 ]
@@ -53,4 +53,4 @@ Repository = "https://github.com/preangelleo/script-force-alignment"
 Issues = "https://github.com/preangelleo/script-force-alignment/issues"
 
 [project.scripts]
-elevenlabs-srt = "main:cli"
+elevenlabs-srt = "script_force_alignment:cli"

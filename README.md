@@ -40,7 +40,7 @@ pip install -r requirements.txt
 The new class-based approach allows you to pass API keys directly without managing environment files:
 
 ```python
-from main import SRTGenerator
+from script_force_alignment import SRTGenerator
 
 # Initialize the generator with API keys
 generator = SRTGenerator(
@@ -86,7 +86,7 @@ For backward compatibility, you can still use the original function with environ
 
 ```python
 # Requires ELEVENLABS_API_KEY and GEMINI_API_KEY in .env file
-from main import elevenlabs_force_alignment_to_srt
+from script_force_alignment import elevenlabs_force_alignment_to_srt
 
 success, result = elevenlabs_force_alignment_to_srt(
     audio_file="path/to/audio.mp3",

@@ -5,7 +5,7 @@ Example usage of ElevenLabs Force Alignment SRT Generator
 This file demonstrates how to use the SRTGenerator class for production use.
 """
 
-from main import SRTGenerator
+from script_force_alignment import SRTGenerator
 
 # ============================================================================
 # CONFIGURATION
@@ -259,7 +259,7 @@ def example_legacy_function():
     """Example using the legacy function interface with .env file."""
     
     # This requires ELEVENLABS_API_KEY and GEMINI_API_KEY in .env file
-    from main import elevenlabs_force_alignment_to_srt
+    from script_force_alignment import elevenlabs_force_alignment_to_srt
     
     success, result = elevenlabs_force_alignment_to_srt(
         audio_file=AUDIO_FILE,
