@@ -10,6 +10,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not found in environment variables, add GEMINI_API_KEY to .env file")
 
+GEMINI_MODEL = 'gemini-2.0-flash'
+
 def elevenlabs_force_alignment_to_srt(
     audio_file: str,
     input_text: str, 
@@ -327,15 +329,24 @@ Transform the following word-level timing data into properly segmented SRT subti
    - **IMPORTANT**: English translation must ALWAYS be on ONE SINGLE LINE, never break it
 
 3. **CRITICAL PUNCTUATION AND SPACING RULES**:
-   - REMOVE ALL Chinese punctuation marks and replace with spaces: ，。！？；：""''「」『』（）【】
+   - **ABSOLUTELY MUST REMOVE ALL QUOTATION MARKS**: Remove "" '' "" '' 「」 『』 and replace with spaces
+   - REMOVE ALL Chinese punctuation marks: ，。！？；：（）【】〈〉《》
    - REMOVE ALL English punctuation at beginning and end of lines
-   - Keep only essential punctuation in the middle if needed for clarity
    - NO punctuation at the start or end of any subtitle line
+   - **IMPORTANT**: Quotation marks MUST be removed, not kept!
    - **Mixed Chinese-English**: Add spaces around English words in Chinese text
-   - Example: "因此，铭记历史，" → "因此 铭记历史"
-   - Example: "Hello, world!" → "Hello world"
-   - Example: "今天学习Python编程" → "今天学习 Python 编程"
-   - Example: "使用API接口" → "使用 API 接口"
+   - Examples of quote removal:
+     * "混合政体" → 混合政体
+     * "中道" → 中道  
+     * 最好的政体是"混合政体" → 最好的政体是 混合政体
+     * 追求"中道"，避免极端 → 追求 中道 避免极端
+     * "认识世界" → 认识世界
+     * "改造世界" → 改造世界
+   - Other examples:
+     * "因此，铭记历史，" → "因此 铭记历史"
+     * "Hello, world!" → "Hello world"
+     * "今天学习Python编程" → "今天学习 Python 编程"
+     * "使用API接口" → "使用 API 接口"
 
 4. **Timing Rules**:
    - Use the first word's start time as subtitle start
@@ -369,7 +380,8 @@ Transform the following word-level timing data into properly segmented SRT subti
 - **GOOD EXAMPLE**:
   "这就构成了我们今天真正要去解开的核心谜题" (20 chars) → One subtitle ✅ CORRECT
 - Never split compound words or numbers like "一百八十度", "API接口", etc.
-- MUST remove punctuation marks as specified above
+- **VALIDATION**: Check your output - it should NOT contain any quotes "" '' "" '' 「」 『』
+- MUST remove ALL punctuation marks as specified above, especially quotation marks
 - English translation MUST NEVER be broken into multiple lines
 - Return ONLY the JSON array, no explanations"""
 
@@ -420,7 +432,7 @@ def _elevenlabs_semantic_srt_with_gemini(
         prompt = _create_elevenlabs_semantic_prompt(words, adjusted_max_chars)
         
         # Call Gemini
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        model = genai.GenerativeModel(GEMINI_MODEL)
         
         print("🚀 Calling Gemini for semantic segmentation...")
         start_time = time.time()

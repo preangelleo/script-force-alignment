@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "elevenlabs-srt-generator"
-version = "1.0.0"
+version = "1.0.1"
 authors = [
     {name = "Script Force Alignment Contributors"},
 ]

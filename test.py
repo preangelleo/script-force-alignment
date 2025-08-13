@@ -1,230 +1,236 @@
 #!/usr/bin/env python3
 """
-Test script for ElevenLabs semantic SRT generation feature
-Testing with scene 15 from web_1755001064534_tlv280s7z
+Example usage of ElevenLabs Force Alignment SRT Generator
+
+This file demonstrates how to use the force alignment tool in production.
+Users can copy this file and modify the parameters for their specific use case.
 """
 
-from main import *
+import os
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
 
-def test():
-    print("🧪 Testing ElevenLabs Semantic SRT Generation Feature")
+# Add parent directory to path to import main module
+sys.path.insert(0, str(Path(__file__).parent))
+from main import elevenlabs_force_alignment_to_srt
+
+# Load environment variables
+load_dotenv()
+
+# ============================================================================
+# CONFIGURATION PARAMETERS - MODIFY THESE FOR YOUR USE CASE
+# ============================================================================
+
+# Audio file configuration
+AUDIO_FILE_PATH = "/Users/lgg/coding/sumatman/Temps/web_1755001064534_tlv280s7z/audio/scene_030_chinese.mp3"  # Path to your audio file
+# Supported formats: MP3, WAV, M4A, OGG, FLAC, AAC, OPUS, MP4
+
+# Text content that corresponds to the audio
+# This should be the exact transcript of what's spoken in the audio
+TEXT_CONTENT = """
+这不仅仅是简单的知识传授，这是一个巨大的思想实验室。亚里士多德在塑造一个未来帝王心智的同时，也在大规模地验证和完善着自己的政治理论。他告诉亚历山大，最好的政体是融合了各方优点的“混合政体”，并且要时时刻刻追求“中道”，避免任何形式的极端。这是我们的第二条线索：理论与权力的第一次亲密接触。这段宝贵的经历让亚里士多德深刻地认识到，知识的最终目的，不仅仅是“认识世界”，更重要的是“改造世界”。
+"""
+
+# Output configuration
+OUTPUT_FILE_PATH = "/Users/lgg/coding/sumatman/Temps/subtitles.srt"  # Where to save the SRT file
+
+# Subtitle formatting configuration
+MAX_CHARS_PER_LINE = 36  # Maximum characters per subtitle line
+# Note: For bilingual subtitles, this will be automatically adjusted
+
+# Language configuration
+LANGUAGE = 'chinese'  # Options: 'chinese', 'english', 'spanish', 'french', etc.
+# This helps the tool optimize for specific language characteristics
+
+# Semantic segmentation configuration
+USE_SEMANTIC_SEGMENTATION = True  # True: Use AI for smart segmentation
+# - True: Uses Gemini AI to create natural, meaningful subtitle segments
+# - False: Uses simple character-based segmentation
+
+# Advanced configuration (optional)
+API_KEY_OVERRIDE = None  # Set to override the .env file API key
+# Example: API_KEY_OVERRIDE = "xi-abc123..."
+
+# ============================================================================
+# MAIN FUNCTION - Usually you don't need to modify this
+# ============================================================================
+
+def generate_subtitles():
+    """
+    Generate SRT subtitles for the configured audio file.
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    
+    print("🎬 ElevenLabs Force Alignment SRT Generator")
     print("=" * 60)
     
-    # Scene 15 data
-    scene_15_data = {
-        "scene_number": 30,
-        "scene_name": "第三环的转向",
-        "scene_audio_script": "这不仅仅是简单的知识传授，这是一个巨大的思想实验室。亚里士多德在塑造一个未来帝王心智的同时，也在大规模地验证和完善着自己的政治理论。他告诉亚历山大，最好的政体是融合了各方优点的“混合政体”，并且要时时刻刻追求“中道”，避免任何形式的极端。这是我们的第二条线索：理论与权力的第一次亲密接触。这段宝贵的经历让亚里士多德深刻地认识到，知识的最终目的，不仅仅是“认识世界”，更重要的是“改造世界”。"
-    }
+    # Validate environment
+    if not os.getenv("ELEVENLABS_API_KEY") and not API_KEY_OVERRIDE:
+        print("❌ ERROR: ELEVENLABS_API_KEY not found")
+        print("Please set up your .env file or provide API_KEY_OVERRIDE")
+        print("See .env.example for reference")
+        return False
     
-    # File paths
-    base_dir = "/Users/lgg/coding/sumatman/Temps/web_1755001064534_tlv280s7z"
-    audio_file = os.path.join(base_dir, "audio", "scene_019_chinese.mp3")
+    if USE_SEMANTIC_SEGMENTATION and not os.getenv("GEMINI_API_KEY"):
+        print("❌ ERROR: GEMINI_API_KEY not found (required for semantic segmentation)")
+        print("Please set up your .env file or set USE_SEMANTIC_SEGMENTATION = False")
+        return False
     
-    # Output paths for comparison
-    semantic_output = os.path.join("/Users/lgg/coding/sumatman/Temps/", "scene_30_semantic_test.srt")
-    simple_output = os.path.join("/Users/lgg/coding/sumatman/Temps/", "scene_030_simple_test.srt")
+    # Validate input file
+    if not os.path.exists(AUDIO_FILE_PATH):
+        print(f"❌ ERROR: Audio file not found: {AUDIO_FILE_PATH}")
+        print("Please check the file path and try again")
+        return False
     
-    # Verify audio file exists
-    if not os.path.exists(audio_file):
-        print(f"❌ Audio file not found: {audio_file}")
-        return
+    # Create output directory if needed
+    output_dir = os.path.dirname(OUTPUT_FILE_PATH)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
     
-    file_size = os.path.getsize(audio_file)
-    print(f"📁 Audio file: {os.path.basename(audio_file)} ({file_size:,} bytes)")
-    print(f"📝 Scene: {scene_15_data['scene_name']}")
-    print(f"✏️  Script: {scene_15_data['scene_audio_script'][:50]}...")
+    # Display configuration
+    print("📋 Configuration:")
+    print(f"   Audio: {AUDIO_FILE_PATH}")
+    print(f"   Output: {OUTPUT_FILE_PATH}")
+    print(f"   Language: {LANGUAGE}")
+    print(f"   Max chars/line: {MAX_CHARS_PER_LINE}")
+    print(f"   Semantic AI: {'Enabled' if USE_SEMANTIC_SEGMENTATION else 'Disabled'}")
     print()
     
-    # Test 1: With semantic segmentation (default)
-    print("🧠 TEST 1: With Semantic Segmentation (Gemini AI)")
-    print("-" * 40)
+    # Generate subtitles
+    print("🚀 Starting force alignment...")
     
-    # Clean up previous test files
-    if os.path.exists(semantic_output):
-        os.remove(semantic_output)
-    
-    start_time = time.time()
-    success1, result1 = elevenlabs_force_alignment_to_srt(
-        audio_file=audio_file,
-        input_text=scene_15_data['scene_audio_script'],
-        output_filepath=semantic_output,
-        max_chars_per_line=30,  # Will be halved to 10 for bilingual
-        language='chinese',
-        use_semantic_segmentation=True
-    )
-    elapsed1 = time.time() - start_time
-    
-    print(f"⏱️  Time taken: {elapsed1:.1f}s")
-    print(f"✅ Result: {success1}")
-    if success1:
-        print(f"📄 Output: {result1}")
-    else:
-        print(f"❌ Error: {result1}")
-    print()
-    
-    # Test 2: Without semantic segmentation (simple character-based)
-    print("📏 TEST 2: Without Semantic Segmentation (Simple)")
-    print("-" * 40)
-    
-    # Clean up previous test files
-    if os.path.exists(simple_output):
-        os.remove(simple_output)
-    
-    start_time = time.time()
-    success2, result2 = elevenlabs_force_alignment_to_srt(
-        audio_file=audio_file,
-        input_text=scene_15_data['scene_audio_script'],
-        output_filepath=simple_output,
-        max_chars_per_line=20,
-        language='chinese',
-        use_semantic_segmentation=False
-    )
-    elapsed2 = time.time() - start_time
-    
-    print(f"⏱️  Time taken: {elapsed2:.1f}s")
-    print(f"✅ Result: {success2}")
-    if success2:
-        print(f"📄 Output: {result2}")
-    else:
-        print(f"❌ Error: {result2}")
-    print()
-    
-    # Compare results
-    print("🔍 COMPARISON AND ANALYSIS")
-    print("=" * 60)
-    
-    if success1 and success2:
-        # Read and compare both SRT files
-        with open(semantic_output, 'r', encoding='utf-8') as f:
-            semantic_content = f.read()
-        
-        with open(simple_output, 'r', encoding='utf-8') as f:
-            simple_content = f.read()
-        
-        print("📊 File Size Comparison:")
-        print(f"   Semantic SRT: {len(semantic_content):,} characters")
-        print(f"   Simple SRT:   {len(simple_content):,} characters")
-        print()
-        
-        print("📝 Content Preview - Semantic SRT (first 10 lines):")
-        semantic_lines = semantic_content.split('\n')[:10]
-        for i, line in enumerate(semantic_lines, 1):
-            print(f"   {i:2d}: {line}")
-        print()
-        
-        print("📝 Content Preview - Simple SRT (first 10 lines):")
-        simple_lines = simple_content.split('\n')[:10]
-        for i, line in enumerate(simple_lines, 1):
-            print(f"   {i:2d}: {line}")
-        print()
-        
-        # Verify key features
-        print("✅ FEATURE VERIFICATION:")
-        print("-" * 30)
-        
-        # Check for bilingual content
-        has_bilingual = any('translation' in line.lower() or 
-                           any(ord(c) < 256 and c.isalpha() for c in line) 
-                           for line in semantic_lines if line.strip())
-        print(f"🌐 Bilingual content detected: {'Yes' if has_bilingual else 'No'}")
-        
-        # Check for punctuation removal
-        chinese_punctuation = "，。！？；：""''「」『』（）【】"
-        has_chinese_punct = any(p in semantic_content for p in chinese_punctuation)
-        print(f"🔣 Chinese punctuation removed: {'Yes' if not has_chinese_punct else 'No'}")
-        
-        # Check line lengths
-        content_lines = [line for line in semantic_lines if line.strip() and not line.strip().isdigit() and '-->' not in line]
-        max_line_length = max(len(line) for line in content_lines) if content_lines else 0
-        print(f"📏 Max line length: {max_line_length} characters")
-        
-        # Character limit compliance (should be around 10 for bilingual)
-        over_limit = [line for line in content_lines if len(line) > 15]
-        print(f"⚠️  Lines over 15 chars: {len(over_limit)}")
-        
-        if over_limit:
-            print("   Sample long lines:")
-            for line in over_limit[:3]:
-                print(f"     '{line}' ({len(line)} chars)")
-        
-            print()
-            print("🎯 SUMMARY:")
-            print(f"   Semantic segmentation: {'✅ SUCCESS' if success1 else '❌ FAILED'}")
-            print(f"   Simple segmentation:   {'✅ SUCCESS' if success2 else '❌ FAILED'}")
-            if success1 and success2:
-                elapsed1 = results["semantic"]["time"]
-                elapsed2 = results["simple"]["time"]
-                print(f"   Processing time difference: {elapsed1 - elapsed2:.1f}s")
-                print(f"   Content quality improvement: {'Yes' if len(semantic_content) > len(simple_content) else 'No'}")
-        else:
-            print("❌ Could not compare results due to failures")
-    
-    print("\n✨ Test completed!")
-    return True, results
-
-if __name__ == "__main__":
-    # Example usage with configurable parameters
-    # Users should modify these parameters for their own testing
-    
-    # TEST CONFIGURATION - MODIFY THESE FOR YOUR USE CASE
-    # ====================================================
-    
-    # Path to your audio file (MP3, WAV, or other supported formats)
-    AUDIO_FILE = "./samples/sample_audio.mp3"
-    
-    # Text content that should be aligned with the audio
-    TEXT_CONTENT = """这是一段示例文本，用于测试语音对齐功能。
-    您可以将这里替换为您自己的文本内容。
-    支持中文、英文和其他多种语言。"""
-    
-    # Output directory for generated SRT files
-    OUTPUT_DIR = "./test_output"
-    
-    # Scene or content name (for display purposes)
-    SCENE_NAME = "示例场景"
-    
-    # Maximum characters per subtitle line
-    # For bilingual subtitles, this will be automatically adjusted
-    MAX_CHARS_PER_LINE = 20
-    
-    # Language of the content ('chinese', 'english', 'spanish', etc.)
-    LANGUAGE = 'chinese'
-    
-    # Whether to run both semantic and simple segmentation tests
-    RUN_BOTH_TESTS = True
-    
-    # ====================================================
-    # RUN THE TEST
-    # ====================================================
-    
-    # Check if we have the required environment variables
-    from dotenv import load_dotenv
-    load_dotenv()
-    
-    if not os.getenv("ELEVENLABS_API_KEY"):
-        print("❌ ERROR: ELEVENLABS_API_KEY not found in .env file")
-        print("Please create a .env file with your API keys.")
-        print("See .env.example for reference.")
-        exit(1)
-    
-    if not os.getenv("GEMINI_API_KEY"):
-        print("❌ ERROR: GEMINI_API_KEY not found in .env file")
-        print("Please create a .env file with your API keys.")
-        print("See .env.example for reference.")
-        exit(1)
-    
-    # Run the test with your parameters
-    success, results = test_force_alignment(
-        audio_file=AUDIO_FILE,
-        text_content=TEXT_CONTENT,
-        output_dir=OUTPUT_DIR,
-        scene_name=SCENE_NAME,
+    success, result = elevenlabs_force_alignment_to_srt(
+        audio_file=AUDIO_FILE_PATH,
+        input_text=TEXT_CONTENT.strip(),
+        output_filepath=OUTPUT_FILE_PATH,
+        api_key=API_KEY_OVERRIDE,
         max_chars_per_line=MAX_CHARS_PER_LINE,
         language=LANGUAGE,
-        run_both_tests=RUN_BOTH_TESTS
+        use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION
     )
     
-    if not success:
-        print("\n❌ Test failed. Please check the error messages above.")
-        exit(1)
+    # Report results
+    print()
+    if success:
+        print("✅ SUCCESS! Subtitles generated successfully")
+        print(f"📄 Output file: {result}")
+        
+        # Display file info
+        if os.path.exists(result):
+            file_size = os.path.getsize(result)
+            with open(result, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                subtitle_count = len([l for l in lines if l.strip() and '-->' in l])
+            
+            print(f"📊 Statistics:")
+            print(f"   File size: {file_size:,} bytes")
+            print(f"   Subtitles: {subtitle_count} segments")
+            print(f"   Total lines: {len(lines)}")
+        
+        return True
+    else:
+        print(f"❌ FAILED: {result}")
+        print("\n🔍 Troubleshooting tips:")
+        print("1. Check your API keys are valid")
+        print("2. Ensure the audio file is accessible")
+        print("3. Verify the text matches the audio content")
+        print("4. Check your internet connection")
+        
+        return False
+
+# ============================================================================
+# ADDITIONAL HELPER FUNCTIONS (Optional)
+# ============================================================================
+
+def batch_process_files(file_list):
+    """
+    Process multiple audio files in batch.
+    
+    Args:
+        file_list: List of tuples (audio_path, text_content, output_path)
+    
+    Example:
+        files = [
+            ("audio1.mp3", "Text 1", "output1.srt"),
+            ("audio2.mp3", "Text 2", "output2.srt"),
+        ]
+        batch_process_files(files)
+    """
+    
+    print(f"🔄 Batch processing {len(file_list)} files...")
+    
+    results = []
+    for i, (audio_path, text, output_path) in enumerate(file_list, 1):
+        print(f"\n[{i}/{len(file_list)}] Processing: {audio_path}")
+        
+        success, result = elevenlabs_force_alignment_to_srt(
+            audio_file=audio_path,
+            input_text=text,
+            output_filepath=output_path,
+            max_chars_per_line=MAX_CHARS_PER_LINE,
+            language=LANGUAGE,
+            use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION
+        )
+        
+        results.append({
+            'audio': audio_path,
+            'success': success,
+            'result': result
+        })
+    
+    # Summary
+    successful = sum(1 for r in results if r['success'])
+    print(f"\n📊 Batch Results: {successful}/{len(file_list)} successful")
+    
+    return results
+
+def validate_alignment(srt_file, original_text):
+    """
+    Validate that the SRT file contains all the original text.
+    
+    Args:
+        srt_file: Path to the SRT file
+        original_text: Original text content
+    
+    Returns:
+        bool: True if validation passes
+    """
+    
+    if not os.path.exists(srt_file):
+        return False
+    
+    with open(srt_file, 'r', encoding='utf-8') as f:
+        srt_content = f.read()
+    
+    # Extract only subtitle text (skip timecodes and numbers)
+    lines = srt_content.split('\n')
+    subtitle_text = []
+    
+    for line in lines:
+        line = line.strip()
+        if line and not line.isdigit() and '-->' not in line:
+            subtitle_text.append(line)
+    
+    combined_text = ' '.join(subtitle_text)
+    
+    # Basic validation: check if most words are present
+    original_words = set(original_text.lower().split())
+    subtitle_words = set(combined_text.lower().split())
+    
+    coverage = len(original_words & subtitle_words) / len(original_words) if original_words else 0
+    
+    return coverage > 0.8  # 80% word coverage threshold
+
+# ============================================================================
+# ENTRY POINT
+# ============================================================================
+
+if __name__ == "__main__":
+    # Run the subtitle generation
+    success = generate_subtitles()
+    
+    # Exit with appropriate code
+    sys.exit(0 if success else 1)
