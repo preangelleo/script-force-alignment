@@ -1,0 +1,12 @@
+include README.md
+include LICENSE
+include .env.example
+include requirements.txt
+include example_usage.py
+include test.py
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * .DS_Store
+recursive-exclude * .git*
+recursive-exclude * .claude-flow*
+recursive-exclude * .swarm*

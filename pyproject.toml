@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "elevenlabs-srt-generator"
+version = "1.0.0"
+authors = [
+    {name = "Script Force Alignment Contributors"},
+]
+description = "Generate synchronized SRT subtitles using ElevenLabs Force Alignment API with AI-powered semantic segmentation"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Text Processing :: Linguistic",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = ["subtitles", "srt", "elevenlabs", "force-alignment", "speech-to-text", "transcription", "ai", "gemini", "bilingual"]
+dependencies = [
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+    "google-generativeai>=0.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/preangelleo/script-force-alignment"
+Documentation = "https://github.com/preangelleo/script-force-alignment#readme"
+Repository = "https://github.com/preangelleo/script-force-alignment"
+Issues = "https://github.com/preangelleo/script-force-alignment/issues"
+
+[project.scripts]
+elevenlabs-srt = "main:cli"

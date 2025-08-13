@@ -517,3 +517,51 @@ def _seconds_to_srt_time(seconds: float) -> str:
     millisecs = int((seconds % 1) * 1000)
     
     return f"{hours:02d}:{minutes:02d}:{secs:02d},{millisecs:03d}"
+
+
+def cli():
+    """Command-line interface for ElevenLabs SRT Generator"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(
+        description='Generate synchronized SRT subtitles using ElevenLabs Force Alignment API'
+    )
+    parser.add_argument('audio', help='Path to audio file')
+    parser.add_argument('text', help='Text content or path to text file')
+    parser.add_argument('-o', '--output', default='output.srt', help='Output SRT file path')
+    parser.add_argument('-m', '--max-chars', type=int, default=20, help='Max characters per line')
+    parser.add_argument('-l', '--language', default='chinese', help='Language code')
+    parser.add_argument('--no-semantic', action='store_true', help='Disable semantic segmentation')
+    parser.add_argument('--api-key', help='ElevenLabs API key (overrides .env)')
+    
+    args = parser.parse_args()
+    
+    # Read text from file if it's a path
+    if os.path.exists(args.text):
+        with open(args.text, 'r', encoding='utf-8') as f:
+            text_content = f.read()
+    else:
+        text_content = args.text
+    
+    # Generate subtitles
+    success, result = elevenlabs_force_alignment_to_srt(
+        audio_file=args.audio,
+        input_text=text_content,
+        output_filepath=args.output,
+        api_key=args.api_key,
+        max_chars_per_line=args.max_chars,
+        language=args.language,
+        use_semantic_segmentation=not args.no_semantic
+    )
+    
+    if success:
+        print(f"✅ Subtitles saved to: {result}")
+        return 0
+    else:
+        print(f"❌ Error: {result}")
+        return 1
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(cli())

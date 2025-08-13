@@ -12,9 +12,9 @@ def test():
     
     # Scene 15 data
     scene_15_data = {
-        "scene_number": 19,
+        "scene_number": 30,
         "scene_name": "第三环的转向",
-        "scene_audio_script": "我们的调查，将从亚里士多德人生中的四个关键场景展开，这四个场景如同四块重要的拼图。每一个场景，都代表着一条至关重要的线索，它们将共同揭示出他那独特而强大的心智模式，是如何一步步形成、发展并最终成熟的。通过检视这些他人生的关键节点，我们将能够拼凑出他思想转变的全貌，理解他为何做出了与众不同的选择。"
+        "scene_audio_script": "这不仅仅是简单的知识传授，这是一个巨大的思想实验室。亚里士多德在塑造一个未来帝王心智的同时，也在大规模地验证和完善着自己的政治理论。他告诉亚历山大，最好的政体是融合了各方优点的“混合政体”，并且要时时刻刻追求“中道”，避免任何形式的极端。这是我们的第二条线索：理论与权力的第一次亲密接触。这段宝贵的经历让亚里士多德深刻地认识到，知识的最终目的，不仅仅是“认识世界”，更重要的是“改造世界”。"
     }
     
     # File paths
@@ -22,8 +22,8 @@ def test():
     audio_file = os.path.join(base_dir, "audio", "scene_019_chinese.mp3")
     
     # Output paths for comparison
-    semantic_output = os.path.join(base_dir, "audio", "scene_019_semantic_test.srt")
-    simple_output = os.path.join(base_dir, "audio", "scene_019_simple_test.srt")
+    semantic_output = os.path.join("/Users/lgg/coding/sumatman/Temps/", "scene_30_semantic_test.srt")
+    simple_output = os.path.join("/Users/lgg/coding/sumatman/Temps/", "scene_030_simple_test.srt")
     
     # Verify audio file exists
     if not os.path.exists(audio_file):
