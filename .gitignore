@@ -53,6 +53,7 @@ htmlcov/
 .tox/
 .hypothesis/
 test.py
+test.py
 
 # Output files
 *.srt
@@ -64,6 +65,7 @@ test.py
 output/
 temp/
 tmp/
+temps/
 
 # Logs
 *.log
