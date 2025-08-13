@@ -23,17 +23,17 @@ load_dotenv()
 # ============================================================================
 
 # Audio file configuration
-AUDIO_FILE_PATH = "/Users/lgg/coding/sumatman/Temps/web_1755001064534_tlv280s7z/audio/scene_030_chinese.mp3"  # Path to your audio file
+AUDIO_FILE_PATH = "/Users/lgg/coding/sumatman/Temps/web_1755001064534_tlv280s7z/audio/scene_033_chinese.mp3"  # Path to your audio file
 # Supported formats: MP3, WAV, M4A, OGG, FLAC, AAC, OPUS, MP4
 
 # Text content that corresponds to the audio
 # This should be the exact transcript of what's spoken in the audio
 TEXT_CONTENT = """
-这不仅仅是简单的知识传授，这是一个巨大的思想实验室。亚里士多德在塑造一个未来帝王心智的同时，也在大规模地验证和完善着自己的政治理论。他告诉亚历山大，最好的政体是融合了各方优点的“混合政体”，并且要时时刻刻追求“中道”，避免任何形式的极端。这是我们的第二条线索：理论与权力的第一次亲密接触。这段宝贵的经历让亚里士多德深刻地认识到，知识的最终目的，不仅仅是“认识世界”，更重要的是“改造世界”。
+亚里士多德和他的学生们，在这里进行着一项前无古人、也可能后无来者的庞大工程：那就是系统性地收集、整理、研究当时人类已知的一切知识。想象一下吕克昂的日常：清晨，亚里士多德可能在和学生讨论悲剧的本质，深入剖析索福克勒斯的《俄狄浦斯王》，并从中总结出“净化”和“突转”等经典的戏剧理论。他的研究范围无所不包，充满了对万事万物的好奇心。
 """
 
 # Output configuration
-OUTPUT_FILE_PATH = "/Users/lgg/coding/sumatman/Temps/subtitles.srt"  # Where to save the SRT file
+OUTPUT_FILE_PATH = "temps/subtitles_33.srt"  # Where to save the SRT file
 
 # Subtitle formatting configuration
 MAX_CHARS_PER_LINE = 36  # Maximum characters per subtitle line
@@ -51,6 +51,13 @@ USE_SEMANTIC_SEGMENTATION = True  # True: Use AI for smart segmentation
 # Advanced configuration (optional)
 API_KEY_OVERRIDE = None  # Set to override the .env file API key
 # Example: API_KEY_OVERRIDE = "xi-abc123..."
+
+# Gemini model configuration (optional)
+GEMINI_MODEL = 'gemini-2.0-flash'  # Use default model (gemini-2.0-flash)
+# Example: GEMINI_MODEL = "gemini-2.0-flash-exp"  # For experimental features
+# Example: GEMINI_MODEL = "gemini-1.5-pro"  # For higher quality
+# Example: GEMINI_MODEL = "gemini-2.0-flash-thinking"  # For complex reasoning
+
 
 # ============================================================================
 # MAIN FUNCTION - Usually you don't need to modify this
@@ -97,6 +104,8 @@ def generate_subtitles():
     print(f"   Language: {LANGUAGE}")
     print(f"   Max chars/line: {MAX_CHARS_PER_LINE}")
     print(f"   Semantic AI: {'Enabled' if USE_SEMANTIC_SEGMENTATION else 'Disabled'}")
+    if GEMINI_MODEL:
+        print(f"   Gemini Model: {GEMINI_MODEL}")
     print()
     
     # Generate subtitles
@@ -109,7 +118,8 @@ def generate_subtitles():
         api_key=API_KEY_OVERRIDE,
         max_chars_per_line=MAX_CHARS_PER_LINE,
         language=LANGUAGE,
-        use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION
+        use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION,
+        model=GEMINI_MODEL
     )
     
     # Report results
@@ -172,7 +182,8 @@ def batch_process_files(file_list):
             output_filepath=output_path,
             max_chars_per_line=MAX_CHARS_PER_LINE,
             language=LANGUAGE,
-            use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION
+            use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION,
+            model=GEMINI_MODEL
         )
         
         results.append({

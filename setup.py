@@ -12,7 +12,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name="elevenlabs-srt-generator",
-    version="1.0.2",
+    version="1.1.0",
     author="Script Force Alignment Contributors",
     author_email="",
     description="Generate synchronized SRT subtitles using ElevenLabs Force Alignment API with AI-powered semantic segmentation",
@@ -66,7 +66,7 @@ setup(
     },
     include_package_data=True,
     package_data={
-        "": ["*.md", "LICENSE", ".env.example"],
+        "": ["*.md", "LICENSE", ".env.example", "system_prompt.txt"],
     },
     zip_safe=False,
 )

@@ -17,7 +17,7 @@
 
 - Python 3.7+
 - ElevenLabs API key ([Get one here](https://elevenlabs.io/))
-- Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
+- Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey)) - Optional for semantic segmentation
 
 ### Installation
 
@@ -33,20 +33,37 @@ cd script-force-alignment
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env and add your API keys
-```
-
-4. Run setup validation:
-```bash
-python setup.py
-```
-
 ## 📖 Usage
 
-### Command Line Interface
+### Method 1: Using the SRTGenerator Class (Recommended)
+
+The new class-based approach allows you to pass API keys directly without managing environment files:
+
+```python
+from main import SRTGenerator
+
+# Initialize the generator with API keys
+generator = SRTGenerator(
+    elevenlabs_api_key="your_elevenlabs_key",
+    gemini_api_key="your_gemini_key"  # Optional for semantic segmentation
+)
+
+# Generate subtitles
+success, result = generator.generate(
+    audio_file="path/to/audio.mp3",
+    text="Your transcript text here",
+    output_file="output/subtitles.srt",
+    max_chars_per_line=20,
+    language='chinese',
+    use_semantic_segmentation=True,
+    model='gemini-2.0-flash'  # Optional: specify Gemini model
+)
+
+if success:
+    print(f"Subtitles saved to: {result}")
+```
+
+### Method 2: Command Line Interface
 
 After installing from PyPI, you can use the CLI directly:
 
@@ -60,40 +77,37 @@ elevenlabs-srt audio.mp3 transcript.txt \
   --max-chars 30 \
   --language chinese \
   --no-semantic  # Disable AI segmentation
+  --system-prompt custom_prompt.txt  # Use custom system prompt
 ```
 
-### Python API
+### Method 3: Legacy Function Interface
+
+For backward compatibility, you can still use the original function with environment variables:
 
 ```python
+# Requires ELEVENLABS_API_KEY and GEMINI_API_KEY in .env file
 from main import elevenlabs_force_alignment_to_srt
 
-# Generate subtitles
 success, result = elevenlabs_force_alignment_to_srt(
     audio_file="path/to/audio.mp3",
     input_text="Your transcript text here",
-    output_filepath="output/subtitles.srt",
-    max_chars_per_line=20,
-    language='chinese',
-    use_semantic_segmentation=True,  # Enable AI segmentation
-    model='gemini-2.0-flash'  # Optional: specify Gemini model
+    output_filepath="output/subtitles.srt"
 )
-
-if success:
-    print(f"Subtitles saved to: {result}")
 ```
 
 ### Using the Example Script
 
-Edit `example_usage.py` with your parameters:
+Edit `example_usage.py` with your API keys and parameters:
 
 ```python
-# Configuration
-AUDIO_FILE_PATH = "./samples/your_audio.mp3"
+# API Keys (required)
+ELEVENLABS_API_KEY = "your_elevenlabs_api_key_here"
+GEMINI_API_KEY = "your_gemini_api_key_here"  # Optional
+
+# Audio and text configuration
+AUDIO_FILE = "./samples/your_audio.mp3"
 TEXT_CONTENT = "Your transcript here..."
-OUTPUT_FILE_PATH = "./output/subtitles.srt"
-LANGUAGE = 'chinese'
-MAX_CHARS_PER_LINE = 20
-USE_SEMANTIC_SEGMENTATION = True
+OUTPUT_FILE = "./output/subtitles.srt"
 ```
 
 Then run:
@@ -109,12 +123,53 @@ The test script allows you to compare semantic vs simple segmentation:
 python test.py
 ```
 
+## 🎨 Custom System Prompt
+
+The tool uses an AI system prompt to guide subtitle generation. You can customize this in three ways:
+
+### 1. Modify the Default Prompt File
+Edit `system_prompt.txt` to change the default behavior globally.
+
+### 2. Pass Custom Prompt to SRTGenerator
+```python
+# Load custom prompt from file
+with open('my_custom_prompt.txt', 'r') as f:
+    custom_prompt = f.read()
+
+generator = SRTGenerator(
+    elevenlabs_api_key="key",
+    gemini_api_key="key",
+    system_prompt=custom_prompt  # Use custom prompt
+)
+```
+
+### 3. Override Per Generation Call
+```python
+generator.generate(
+    audio_file="audio.mp3",
+    text="transcript",
+    output_file="output.srt",
+    system_prompt="Your custom prompt with {max_chars_per_line} and {words_json}"
+)
+```
+
+### System Prompt Placeholders
+Your custom prompt must include these placeholders:
+- `{max_chars_per_line}` - Will be replaced with the character limit
+- `{words_json}` - Will be replaced with the word timing data
+
 ## 🔧 API Configuration
 
-### Required Environment Variables
+### Option 1: Pass API Keys Directly (Recommended)
+```python
+generator = SRTGenerator(
+    elevenlabs_api_key="your_key",
+    gemini_api_key="your_key"
+)
+```
 
+### Option 2: Use Environment Variables
 Create a `.env` file with:
-
 ```env
 ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -135,18 +190,52 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 ## 📝 API Reference
 
-### Main Function
+### SRTGenerator Class
+
+```python
+class SRTGenerator:
+    def __init__(
+        elevenlabs_api_key: str,
+        gemini_api_key: Optional[str] = None,
+        default_model: str = 'gemini-2.0-flash',
+        system_prompt: Optional[str] = None
+    )
+```
+
+#### Constructor Parameters
+- **elevenlabs_api_key**: ElevenLabs API key (required)
+- **gemini_api_key**: Gemini API key (optional, needed for semantic segmentation)
+- **default_model**: Default Gemini model to use
+- **system_prompt**: Custom system prompt for AI segmentation
+
+#### Generate Method
+
+```python
+def generate(
+    audio_file: str,
+    text: str,
+    output_file: str,
+    max_chars_per_line: int = 20,
+    language: str = 'chinese',
+    use_semantic_segmentation: bool = True,
+    model: Optional[str] = None,
+    system_prompt: Optional[str] = None
+) -> Tuple[bool, str]
+```
+
+### Legacy Function
 
 ```python
 elevenlabs_force_alignment_to_srt(
-    audio_file: str,           # Path to audio file
-    input_text: str,           # Transcript text
-    output_filepath: str,      # Output SRT path
-    api_key: str = None,       # Optional API key override
-    max_chars_per_line: int = 20,  # Max characters per line
-    language: str = 'chinese',     # Language code
-    use_semantic_segmentation: bool = True,  # Enable AI segmentation
-    model: str = None          # Gemini model (default: gemini-2.0-flash)
+    audio_file: str,
+    input_text: str,
+    output_filepath: str,
+    api_key: str = None,
+    max_chars_per_line: int = 20,
+    language: str = 'chinese',
+    use_semantic_segmentation: bool = True,
+    model: str = None,
+    system_prompt: str = None
 ) -> Tuple[bool, str]
 ```
 

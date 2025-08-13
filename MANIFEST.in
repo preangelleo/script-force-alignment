@@ -4,6 +4,7 @@ include .env.example
 include requirements.txt
 include example_usage.py
 include test.py
+include system_prompt.txt
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude * .DS_Store

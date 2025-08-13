@@ -1,16 +1,145 @@
 import os, time, requests
-from typing import Tuple, List, Dict, Any
+from typing import Tuple, List, Dict, Any, Optional
 from dotenv import load_dotenv
-load_dotenv()
 
+# Try to load .env file if it exists (but don't fail if not)
+try:
+    load_dotenv()
+except:
+    pass
+
+# Get environment variables (may be None)
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-if not ELEVENLABS_API_KEY:
-    raise ValueError("ELEVENLABS_API_KEY not found in environment variables, add ELEVENLABS_API_KEY to .env file")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in environment variables, add GEMINI_API_KEY to .env file")
-
 GEMINI_MODEL = 'gemini-2.0-flash'
+
+# Load default system prompt
+DEFAULT_SYSTEM_PROMPT = None
+try:
+    system_prompt_path = os.path.join(os.path.dirname(__file__), 'system_prompt.txt')
+    if os.path.exists(system_prompt_path):
+        with open(system_prompt_path, 'r', encoding='utf-8') as f:
+            DEFAULT_SYSTEM_PROMPT = f.read()
+except:
+    pass
+
+
+class SRTGenerator:
+    """
+    A class for generating SRT subtitles using ElevenLabs Force Alignment API
+    with AI-powered semantic segmentation using Google Gemini.
+    
+    Example:
+        >>> generator = SRTGenerator(
+        ...     elevenlabs_api_key="your_elevenlabs_key",
+        ...     gemini_api_key="your_gemini_key"  # Optional for semantic segmentation
+        ... )
+        >>> success, result = generator.generate(
+        ...     audio_file="audio.mp3",
+        ...     text="Your transcript",
+        ...     output_file="output.srt"
+        ... )
+    """
+    
+    def __init__(
+        self,
+        elevenlabs_api_key: str,
+        gemini_api_key: Optional[str] = None,
+        default_model: str = GEMINI_MODEL,
+        system_prompt: Optional[str] = None
+    ):
+        """
+        Initialize the SRT Generator.
+        
+        Args:
+            elevenlabs_api_key: ElevenLabs API key (required)
+            gemini_api_key: Gemini API key (optional, needed for semantic segmentation)
+            default_model: Default Gemini model to use
+            system_prompt: Custom system prompt for Gemini (optional, uses default if not provided)
+        """
+        if not elevenlabs_api_key:
+            raise ValueError("elevenlabs_api_key is required")
+        
+        self.elevenlabs_api_key = elevenlabs_api_key
+        self.gemini_api_key = gemini_api_key
+        self.default_model = default_model
+        self.system_prompt = system_prompt or DEFAULT_SYSTEM_PROMPT
+        
+        # Store original global values for restoration
+        self._original_elevenlabs = ELEVENLABS_API_KEY
+        self._original_gemini = GEMINI_API_KEY
+    
+    def generate(
+        self,
+        audio_file: str,
+        text: str,
+        output_file: str,
+        max_chars_per_line: int = 20,
+        language: str = 'chinese',
+        use_semantic_segmentation: bool = True,
+        model: Optional[str] = None,
+        system_prompt: Optional[str] = None
+    ) -> Tuple[bool, str]:
+        """
+        Generate SRT subtitles for the given audio file.
+        
+        Args:
+            audio_file: Path to audio file
+            text: Transcript text
+            output_file: Output SRT file path
+            max_chars_per_line: Maximum characters per subtitle line
+            language: Language code (e.g., 'chinese', 'english')
+            use_semantic_segmentation: Use AI for semantic segmentation
+            model: Gemini model to use (overrides default)
+            system_prompt: Custom system prompt for Gemini (overrides instance default)
+        
+        Returns:
+            Tuple[bool, str]: (Success status, Output path or error message)
+        """
+        # Temporarily set global variables for the function to use
+        global ELEVENLABS_API_KEY, GEMINI_API_KEY
+        
+        original_elevenlabs = ELEVENLABS_API_KEY
+        original_gemini = GEMINI_API_KEY
+        
+        try:
+            ELEVENLABS_API_KEY = self.elevenlabs_api_key
+            GEMINI_API_KEY = self.gemini_api_key
+            
+            # Check if semantic segmentation is possible
+            if use_semantic_segmentation and not self.gemini_api_key:
+                print("⚠️ Warning: Semantic segmentation requested but Gemini API key not provided.")
+                print("   Falling back to simple character-based segmentation.")
+                use_semantic_segmentation = False
+            
+            # Call the original function
+            return elevenlabs_force_alignment_to_srt(
+                audio_file=audio_file,
+                input_text=text,
+                output_filepath=output_file,
+                api_key=self.elevenlabs_api_key,
+                max_chars_per_line=max_chars_per_line,
+                language=language,
+                use_semantic_segmentation=use_semantic_segmentation,
+                model=model or self.default_model,
+                system_prompt=system_prompt or self.system_prompt
+            )
+        finally:
+            # Restore original values
+            ELEVENLABS_API_KEY = original_elevenlabs
+            GEMINI_API_KEY = original_gemini
+
+
+# For backward compatibility - only check env vars if used directly
+if __name__ == "__main__" or ELEVENLABS_API_KEY is None:
+    # Don't force env vars to exist unless running as script
+    pass
+else:
+    # Only validate when imported and env vars are set
+    if not ELEVENLABS_API_KEY:
+        print("Warning: ELEVENLABS_API_KEY not found in environment variables")
+    if not GEMINI_API_KEY:
+        print("Warning: GEMINI_API_KEY not found in environment variables")
 
 def elevenlabs_force_alignment_to_srt(
     audio_file: str,
@@ -20,7 +149,8 @@ def elevenlabs_force_alignment_to_srt(
     max_chars_per_line: int = 20,  # Changed default for Chinese
     language: str = 'chinese',  # 保持兼容性参数
     use_semantic_segmentation: bool = True,  # New parameter for AI semantic segmentation
-    model: str = None  # Gemini model to use, defaults to GEMINI_MODEL
+    model: str = None,  # Gemini model to use, defaults to GEMINI_MODEL
+    system_prompt: str = None  # Custom system prompt for Gemini
 ) -> Tuple[bool, str]:
     """
     使用ElevenLabs Force Alignment API生成SRT字幕文件
@@ -120,7 +250,7 @@ def elevenlabs_force_alignment_to_srt(
         if use_semantic_segmentation:
             # Use new Gemini semantic segmentation
             srt_success, srt_result = _elevenlabs_semantic_srt_with_gemini(
-                words, output_filepath, input_text, max_chars_per_line, language, model
+                words, output_filepath, input_text, max_chars_per_line, language, model, system_prompt
             )
         else:
             # Use original simple segmentation
@@ -289,7 +419,8 @@ def _group_words_into_segments(words: List[Dict[str, Any]], max_chars_per_line: 
 
 def _create_elevenlabs_semantic_prompt(
     words_data: List[Dict[str, Any]], 
-    max_chars_per_line: int = 20
+    max_chars_per_line: int = 20,
+    custom_prompt: str = None
 ) -> str:
     """
     Create semantic segmentation prompt for Gemini AI
@@ -297,6 +428,7 @@ def _create_elevenlabs_semantic_prompt(
     Args:
         words_data: ElevenLabs word-level timing data
         max_chars_per_line: Maximum characters per subtitle line
+        custom_prompt: Custom system prompt (optional)
     
     Returns:
         str: Gemini prompt
@@ -307,6 +439,14 @@ def _create_elevenlabs_semantic_prompt(
     # Convert words to JSON for prompt
     words_json = json.dumps(words_data, ensure_ascii=False, indent=2)
     
+    # Use custom prompt if provided, otherwise use default
+    if custom_prompt:
+        # Replace placeholders in custom prompt
+        prompt = custom_prompt.replace('{max_chars_per_line}', str(max_chars_per_line))
+        prompt = prompt.replace('{words_json}', words_json)
+        return prompt
+    
+    # Use the default hardcoded prompt if no custom prompt provided
     prompt = f"""You are an expert subtitle creator specializing in semantic segmentation and bilingual subtitles.
 
 ## YOUR TASK:
@@ -395,7 +535,8 @@ def _elevenlabs_semantic_srt_with_gemini(
     original_text: str,
     max_chars_per_line: int = 20,
     language: str = 'chinese',
-    model: str = None
+    model: str = None,
+    system_prompt: str = None
 ) -> Tuple[bool, str]:
     """
     Use Gemini AI for semantic segmentation and bilingual SRT generation
@@ -431,7 +572,7 @@ def _elevenlabs_semantic_srt_with_gemini(
         print(f"   Words: {len(words)}, Max chars/line: {adjusted_max_chars}")
         
         # Create prompt with adjusted character limit
-        prompt = _create_elevenlabs_semantic_prompt(words, adjusted_max_chars)
+        prompt = _create_elevenlabs_semantic_prompt(words, adjusted_max_chars, system_prompt)
         
         # Call Gemini
         # Use provided model or default to GEMINI_MODEL
@@ -550,6 +691,7 @@ def cli():
     parser.add_argument('--no-semantic', action='store_true', help='Disable semantic segmentation')
     parser.add_argument('--api-key', help='ElevenLabs API key (overrides .env)')
     parser.add_argument('--model', default=None, help=f'Gemini model to use (default: {GEMINI_MODEL})')
+    parser.add_argument('--system-prompt', help='Path to custom system prompt file')
     
     args = parser.parse_args()
     
@@ -560,6 +702,12 @@ def cli():
     else:
         text_content = args.text
     
+    # Load custom system prompt if provided
+    custom_prompt = None
+    if args.system_prompt and os.path.exists(args.system_prompt):
+        with open(args.system_prompt, 'r', encoding='utf-8') as f:
+            custom_prompt = f.read()
+    
     # Generate subtitles
     success, result = elevenlabs_force_alignment_to_srt(
         audio_file=args.audio,
@@ -569,7 +717,8 @@ def cli():
         max_chars_per_line=args.max_chars,
         language=args.language,
         use_semantic_segmentation=not args.no_semantic,
-        model=args.model
+        model=args.model,
+        system_prompt=custom_prompt
     )
     
     if success:

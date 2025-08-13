@@ -1,0 +1,78 @@
+You are an expert subtitle creator specializing in semantic segmentation and bilingual subtitles.
+
+## YOUR TASK:
+Transform the following word-level timing data into properly segmented SRT subtitles with these requirements:
+
+1. **Semantic Segmentation**: 
+   - Group words into meaningful phrases and sentences
+   - Each subtitle line should be a complete thought or phrase
+   - **LENGTH RULES**: 
+     * Try to use as much of the {max_chars_per_line} character limit as possible
+     * ONLY break into new subtitle when exceeding {max_chars_per_line} characters
+     * DO NOT break short sentences that fit within the limit
+     * Example: If limit is 30, "这就构成了我们今天真正要去解开的核心谜题" (20 chars) should be ONE line, not broken
+   - When breaking is necessary, break at natural pause points (commas, conjunctions, etc.)
+   - Never break in the middle of a phrase or compound word like "一百八十度"
+
+2. **Bilingual Format**:
+   - If the original text is Chinese/Japanese/Korean/etc., create bilingual subtitles
+   - Format: Original language on first line, English translation on second line
+   - If original is English, keep single language
+   - **IMPORTANT**: English translation must ALWAYS be on ONE SINGLE LINE, never break it
+
+3. **CRITICAL PUNCTUATION AND SPACING RULES**:
+   - **ABSOLUTELY MUST REMOVE ALL QUOTATION MARKS**: Remove "" '' "" '' 「」 『』 and replace with spaces
+   - REMOVE ALL Chinese punctuation marks: ，。！？；：（）【】〈〉《》
+   - REMOVE ALL English punctuation at beginning and end of lines
+   - NO punctuation at the start or end of any subtitle line
+   - **IMPORTANT**: Quotation marks MUST be removed, not kept!
+   - **Mixed Chinese-English**: Add spaces around English words in Chinese text
+   - Examples of quote removal:
+     * "混合政体" → 混合政体
+     * "中道" → 中道  
+     * 最好的政体是"混合政体" → 最好的政体是 混合政体
+     * 追求"中道"，避免极端 → 追求 中道 避免极端
+     * "认识世界" → 认识世界
+     * "改造世界" → 改造世界
+   - Other examples:
+     * "因此，铭记历史，" → "因此 铭记历史"
+     * "Hello, world!" → "Hello world"
+     * "今天学习Python编程" → "今天学习 Python 编程"
+     * "使用API接口" → "使用 API 接口"
+
+4. **Timing Rules**:
+   - Use the first word's start time as subtitle start
+   - Use the last word's end time as subtitle end
+   - Each subtitle should be 1-4 seconds long ideally
+   - Never exceed 7 seconds for a single subtitle
+
+5. **Output Format**:
+   Return a JSON array with this structure:
+   ```json
+   [
+     {
+       "index": 1,
+       "start": 0.123,
+       "end": 2.456,
+       "original": "原文内容没有标点",
+       "translation": "Complete English translation on one line without breaks"
+     },
+     ...
+   ]
+   ```
+
+## WORD-LEVEL DATA:
+{words_json}
+
+## IMPORTANT:
+- Focus on natural reading flow and comprehension
+- **MINIMIZE LINE BREAKS**: Only break when text exceeds {max_chars_per_line} characters
+- **BAD EXAMPLE** (too many breaks):
+  "这就构成了" (6 chars) → Break → "我们" (2 chars) ❌ WRONG - should be one line
+- **GOOD EXAMPLE**:
+  "这就构成了我们今天真正要去解开的核心谜题" (20 chars) → One subtitle ✅ CORRECT
+- Never split compound words or numbers like "一百八十度", "API接口", etc.
+- **VALIDATION**: Check your output - it should NOT contain any quotes "" '' "" '' 「」 『』
+- MUST remove ALL punctuation marks as specified above, especially quotation marks
+- English translation MUST NEVER be broken into multiple lines
+- Return ONLY the JSON array, no explanations

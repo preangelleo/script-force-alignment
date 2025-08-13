@@ -2,32 +2,21 @@
 """
 Example usage of ElevenLabs Force Alignment SRT Generator
 
-This file demonstrates how to use the force alignment tool in production.
-Users can copy this file and modify the parameters for their specific use case.
+This file demonstrates how to use the SRTGenerator class for production use.
 """
 
-import os
-import sys
-from pathlib import Path
-from dotenv import load_dotenv
-
-# Add parent directory to path to import main module
-sys.path.insert(0, str(Path(__file__).parent))
-from main import elevenlabs_force_alignment_to_srt
-
-# Load environment variables
-load_dotenv()
+from main import SRTGenerator
 
 # ============================================================================
-# CONFIGURATION PARAMETERS - MODIFY THESE FOR YOUR USE CASE
+# CONFIGURATION
 # ============================================================================
 
-# Audio file configuration
-AUDIO_FILE_PATH = "./samples/your_audio.mp3"  # Path to your audio file
-# Supported formats: MP3, WAV, M4A, OGG, FLAC, AAC, OPUS, MP4
+# API Keys (required)
+ELEVENLABS_API_KEY = "your_elevenlabs_api_key_here"
+GEMINI_API_KEY = "your_gemini_api_key_here"  # Optional, for semantic segmentation
 
-# Text content that corresponds to the audio
-# This should be the exact transcript of what's spoken in the audio
+# Audio and text configuration
+AUDIO_FILE = "./samples/your_audio.mp3"
 TEXT_CONTENT = """
 将您的音频转录文本放在这里。
 这个文本应该与音频中说的内容完全匹配。
@@ -37,126 +26,189 @@ The tool supports 99+ languages.
 """
 
 # Output configuration
-OUTPUT_FILE_PATH = "./output/subtitles.srt"  # Where to save the SRT file
+OUTPUT_FILE = "./output/subtitles.srt"
 
-# Subtitle formatting configuration
+# Subtitle formatting
 MAX_CHARS_PER_LINE = 20  # Maximum characters per subtitle line
-# Note: For bilingual subtitles, this will be automatically adjusted
-
-# Language configuration
 LANGUAGE = 'chinese'  # Options: 'chinese', 'english', 'spanish', 'french', etc.
-# This helps the tool optimize for specific language characteristics
 
-# Semantic segmentation configuration
-USE_SEMANTIC_SEGMENTATION = True  # True: Use AI for smart segmentation
-# - True: Uses Gemini AI to create natural, meaningful subtitle segments
-# - False: Uses simple character-based segmentation
+# Semantic segmentation (requires Gemini API key)
+USE_SEMANTIC_SEGMENTATION = True  # True: AI segmentation, False: simple segmentation
 
-# Gemini model configuration (optional)
-GEMINI_MODEL = None  # Use default model (gemini-2.0-flash)
-# Example: GEMINI_MODEL = "gemini-2.0-flash-exp"  # For experimental features
-# Example: GEMINI_MODEL = "gemini-1.5-pro"  # For higher quality
-# Example: GEMINI_MODEL = "gemini-2.0-flash-thinking"  # For complex reasoning
+# Gemini model (optional)
+GEMINI_MODEL = None  # Use default (gemini-2.0-flash)
+# GEMINI_MODEL = "gemini-2.0-flash-exp"  # For experimental features
+# GEMINI_MODEL = "gemini-1.5-pro"  # For higher quality
+# GEMINI_MODEL = "gemini-2.0-flash-thinking"  # For complex reasoning
 
-# Advanced configuration (optional)
-API_KEY_OVERRIDE = None  # Set to override the .env file API key
-# Example: API_KEY_OVERRIDE = "xi-abc123..."
+# Custom system prompt (optional)
+CUSTOM_SYSTEM_PROMPT = None  # Use default from system_prompt.txt
+# To use a custom prompt, you can either:
+# 1. Set a string directly:
+# CUSTOM_SYSTEM_PROMPT = "Your custom prompt here with {max_chars_per_line} and {words_json} placeholders"
+# 2. Load from a file:
+# with open('my_custom_prompt.txt', 'r', encoding='utf-8') as f:
+#     CUSTOM_SYSTEM_PROMPT = f.read()
 
 # ============================================================================
-# MAIN FUNCTION - Usually you don't need to modify this
+# MAIN FUNCTION
 # ============================================================================
 
 def generate_subtitles():
-    """
-    Generate SRT subtitles for the configured audio file.
-    
-    Returns:
-        bool: True if successful, False otherwise
-    """
+    """Generate SRT subtitles using the SRTGenerator class."""
     
     print("🎬 ElevenLabs Force Alignment SRT Generator")
     print("=" * 60)
     
-    # Validate environment
-    if not os.getenv("ELEVENLABS_API_KEY") and not API_KEY_OVERRIDE:
-        print("❌ ERROR: ELEVENLABS_API_KEY not found")
-        print("Please set up your .env file or provide API_KEY_OVERRIDE")
-        print("See .env.example for reference")
-        return False
-    
-    if USE_SEMANTIC_SEGMENTATION and not os.getenv("GEMINI_API_KEY"):
-        print("❌ ERROR: GEMINI_API_KEY not found (required for semantic segmentation)")
-        print("Please set up your .env file or set USE_SEMANTIC_SEGMENTATION = False")
-        return False
-    
-    # Validate input file
-    if not os.path.exists(AUDIO_FILE_PATH):
-        print(f"❌ ERROR: Audio file not found: {AUDIO_FILE_PATH}")
-        print("Please check the file path and try again")
-        return False
-    
-    # Create output directory if needed
-    output_dir = os.path.dirname(OUTPUT_FILE_PATH)
-    if output_dir:
-        os.makedirs(output_dir, exist_ok=True)
-    
-    # Display configuration
-    print("📋 Configuration:")
-    print(f"   Audio: {AUDIO_FILE_PATH}")
-    print(f"   Output: {OUTPUT_FILE_PATH}")
-    print(f"   Language: {LANGUAGE}")
-    print(f"   Max chars/line: {MAX_CHARS_PER_LINE}")
-    print(f"   Semantic AI: {'Enabled' if USE_SEMANTIC_SEGMENTATION else 'Disabled'}")
-    if GEMINI_MODEL:
-        print(f"   Gemini Model: {GEMINI_MODEL}")
-    print()
-    
-    # Generate subtitles
-    print("🚀 Starting force alignment...")
-    
-    success, result = elevenlabs_force_alignment_to_srt(
-        audio_file=AUDIO_FILE_PATH,
-        input_text=TEXT_CONTENT.strip(),
-        output_filepath=OUTPUT_FILE_PATH,
-        api_key=API_KEY_OVERRIDE,
-        max_chars_per_line=MAX_CHARS_PER_LINE,
-        language=LANGUAGE,
-        use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION,
-        model=GEMINI_MODEL
-    )
-    
-    # Report results
-    print()
-    if success:
-        print("✅ SUCCESS! Subtitles generated successfully")
-        print(f"📄 Output file: {result}")
+    try:
+        # Initialize the generator with API keys
+        generator = SRTGenerator(
+            elevenlabs_api_key=ELEVENLABS_API_KEY,
+            gemini_api_key=GEMINI_API_KEY,  # Optional
+            system_prompt=CUSTOM_SYSTEM_PROMPT  # Optional custom prompt
+        )
         
-        # Display file info
-        if os.path.exists(result):
-            file_size = os.path.getsize(result)
-            with open(result, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-                subtitle_count = len([l for l in lines if l.strip() and '-->' in l])
+        print("✅ Generator initialized successfully")
+        
+        # Display configuration
+        print("\n📋 Configuration:")
+        print(f"   Audio: {AUDIO_FILE}")
+        print(f"   Output: {OUTPUT_FILE}")
+        print(f"   Language: {LANGUAGE}")
+        print(f"   Max chars/line: {MAX_CHARS_PER_LINE}")
+        print(f"   Semantic AI: {'Enabled' if USE_SEMANTIC_SEGMENTATION and GEMINI_API_KEY else 'Disabled'}")
+        if GEMINI_MODEL:
+            print(f"   Gemini Model: {GEMINI_MODEL}")
+        print()
+        
+        # Generate subtitles
+        print("🚀 Starting subtitle generation...")
+        
+        success, result = generator.generate(
+            audio_file=AUDIO_FILE,
+            text=TEXT_CONTENT.strip(),
+            output_file=OUTPUT_FILE,
+            max_chars_per_line=MAX_CHARS_PER_LINE,
+            language=LANGUAGE,
+            use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION,
+            model=GEMINI_MODEL,
+            system_prompt=CUSTOM_SYSTEM_PROMPT  # Can also override per-call
+        )
+        
+        # Report results
+        print()
+        if success:
+            print("✅ SUCCESS! Subtitles generated successfully")
+            print(f"📄 Output file: {result}")
             
-            print(f"📊 Statistics:")
-            print(f"   File size: {file_size:,} bytes")
-            print(f"   Subtitles: {subtitle_count} segments")
-            print(f"   Total lines: {len(lines)}")
-        
-        return True
-    else:
-        print(f"❌ FAILED: {result}")
-        print("\n🔍 Troubleshooting tips:")
-        print("1. Check your API keys are valid")
-        print("2. Ensure the audio file is accessible")
-        print("3. Verify the text matches the audio content")
-        print("4. Check your internet connection")
-        
+            # Display file info
+            import os
+            if os.path.exists(result):
+                file_size = os.path.getsize(result)
+                with open(result, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    subtitle_count = len([l for l in lines if l.strip() and '-->' in l])
+                
+                print(f"\n📊 Statistics:")
+                print(f"   File size: {file_size:,} bytes")
+                print(f"   Subtitles: {subtitle_count} segments")
+                print(f"   Total lines: {len(lines)}")
+            
+            return True
+        else:
+            print(f"❌ FAILED: {result}")
+            print("\n🔍 Troubleshooting tips:")
+            print("1. Check your API keys are valid")
+            print("2. Ensure the audio file exists and is accessible")
+            print("3. Verify the text matches the audio content")
+            print("4. Check your internet connection")
+            
+            return False
+            
+    except ValueError as e:
+        print(f"❌ Configuration error: {str(e)}")
+        print("\nPlease check your API keys configuration.")
+        return False
+    except Exception as e:
+        print(f"❌ Unexpected error: {str(e)}")
         return False
 
 # ============================================================================
-# ADDITIONAL HELPER FUNCTIONS (Optional)
+# ADDITIONAL EXAMPLES
 # ============================================================================
+
+def example_without_gemini():
+    """Example using only ElevenLabs (no semantic segmentation)."""
+    
+    # Create generator with only ElevenLabs key
+    generator = SRTGenerator(
+        elevenlabs_api_key=ELEVENLABS_API_KEY,
+        gemini_api_key=None  # No Gemini key = simple segmentation
+    )
+    
+    success, result = generator.generate(
+        audio_file=AUDIO_FILE,
+        text=TEXT_CONTENT,
+        output_file="simple_subtitles.srt",
+        use_semantic_segmentation=False  # Will use simple segmentation
+    )
+    
+    return success, result
+
+
+def example_with_custom_model():
+    """Example using a specific Gemini model."""
+    
+    generator = SRTGenerator(
+        elevenlabs_api_key=ELEVENLABS_API_KEY,
+        gemini_api_key=GEMINI_API_KEY
+    )
+    
+    success, result = generator.generate(
+        audio_file=AUDIO_FILE,
+        text=TEXT_CONTENT,
+        output_file="custom_model_subtitles.srt",
+        model="gemini-2.0-flash-exp"  # Use experimental model
+    )
+    
+    return success, result
+
+
+def example_with_custom_prompt():
+    """
+    Example using a custom system prompt for subtitle generation.
+    """
+    
+    # Define a custom prompt (simplified for demonstration)
+    custom_prompt = """
+    You are a subtitle creator. Create SRT subtitles from the word timing data.
+    
+    Requirements:
+    - Maximum {max_chars_per_line} characters per line
+    - Remove all punctuation marks
+    - Create bilingual subtitles (original + English translation)
+    
+    Word data:
+    {words_json}
+    
+    Return a JSON array with format:
+    [{"index": 1, "start": 0.0, "end": 2.0, "original": "text", "translation": "English"}]
+    """
+    
+    generator = SRTGenerator(
+        elevenlabs_api_key=ELEVENLABS_API_KEY,
+        gemini_api_key=GEMINI_API_KEY,
+        system_prompt=custom_prompt  # Use custom prompt for this instance
+    )
+    
+    success, result = generator.generate(
+        audio_file=AUDIO_FILE,
+        text=TEXT_CONTENT,
+        output_file="custom_prompt_subtitles.srt"
+    )
+    
+    return success, result
+
 
 def batch_process_files(file_list):
     """
@@ -164,29 +216,27 @@ def batch_process_files(file_list):
     
     Args:
         file_list: List of tuples (audio_path, text_content, output_path)
-    
-    Example:
-        files = [
-            ("audio1.mp3", "Text 1", "output1.srt"),
-            ("audio2.mp3", "Text 2", "output2.srt"),
-        ]
-        batch_process_files(files)
     """
     
     print(f"🔄 Batch processing {len(file_list)} files...")
+    
+    # Initialize generator once
+    generator = SRTGenerator(
+        elevenlabs_api_key=ELEVENLABS_API_KEY,
+        gemini_api_key=GEMINI_API_KEY
+    )
     
     results = []
     for i, (audio_path, text, output_path) in enumerate(file_list, 1):
         print(f"\n[{i}/{len(file_list)}] Processing: {audio_path}")
         
-        success, result = elevenlabs_force_alignment_to_srt(
+        success, result = generator.generate(
             audio_file=audio_path,
-            input_text=text,
-            output_filepath=output_path,
+            text=text,
+            output_file=output_path,
             max_chars_per_line=MAX_CHARS_PER_LINE,
             language=LANGUAGE,
-            use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION,
-            model=GEMINI_MODEL
+            use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION
         )
         
         results.append({
@@ -201,49 +251,35 @@ def batch_process_files(file_list):
     
     return results
 
-def validate_alignment(srt_file, original_text):
-    """
-    Validate that the SRT file contains all the original text.
+# ============================================================================
+# LEGACY FUNCTION USAGE (for backward compatibility)
+# ============================================================================
+
+def example_legacy_function():
+    """Example using the legacy function interface with .env file."""
     
-    Args:
-        srt_file: Path to the SRT file
-        original_text: Original text content
+    # This requires ELEVENLABS_API_KEY and GEMINI_API_KEY in .env file
+    from main import elevenlabs_force_alignment_to_srt
     
-    Returns:
-        bool: True if validation passes
-    """
+    success, result = elevenlabs_force_alignment_to_srt(
+        audio_file=AUDIO_FILE,
+        input_text=TEXT_CONTENT,
+        output_filepath="legacy_output.srt",
+        max_chars_per_line=MAX_CHARS_PER_LINE,
+        language=LANGUAGE,
+        use_semantic_segmentation=True
+    )
     
-    if not os.path.exists(srt_file):
-        return False
-    
-    with open(srt_file, 'r', encoding='utf-8') as f:
-        srt_content = f.read()
-    
-    # Extract only subtitle text (skip timecodes and numbers)
-    lines = srt_content.split('\n')
-    subtitle_text = []
-    
-    for line in lines:
-        line = line.strip()
-        if line and not line.isdigit() and '-->' not in line:
-            subtitle_text.append(line)
-    
-    combined_text = ' '.join(subtitle_text)
-    
-    # Basic validation: check if most words are present
-    original_words = set(original_text.lower().split())
-    subtitle_words = set(combined_text.lower().split())
-    
-    coverage = len(original_words & subtitle_words) / len(original_words) if original_words else 0
-    
-    return coverage > 0.8  # 80% word coverage threshold
+    return success, result
 
 # ============================================================================
 # ENTRY POINT
 # ============================================================================
 
 if __name__ == "__main__":
-    # Run the subtitle generation
+    import sys
+    
+    # Run the main subtitle generation
     success = generate_subtitles()
     
     # Exit with appropriate code
