@@ -21,14 +21,15 @@
 
 ### Installation
 
-1. Clone the repository:
+#### Option 1: Install from PyPI (Recommended)
 ```bash
-git clone https://github.com/yourusername/script_force_alignment.git
-cd script_force_alignment
+pip install elevenlabs-srt-generator
 ```
 
-2. Install dependencies:
+#### Option 2: Install from Source
 ```bash
+git clone https://github.com/preangelleo/script-force-alignment.git
+cd script-force-alignment
 pip install -r requirements.txt
 ```
 
@@ -45,7 +46,23 @@ python setup.py
 
 ## 📖 Usage
 
-### Basic Example
+### Command Line Interface
+
+After installing from PyPI, you can use the CLI directly:
+
+```bash
+# Basic usage
+elevenlabs-srt audio.mp3 "Your transcript text" -o output.srt
+
+# With options
+elevenlabs-srt audio.mp3 transcript.txt \
+  --output subtitles.srt \
+  --max-chars 30 \
+  --language chinese \
+  --no-semantic  # Disable AI segmentation
+```
+
+### Python API
 
 ```python
 from main import elevenlabs_force_alignment_to_srt
