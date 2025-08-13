@@ -19,7 +19,8 @@ def elevenlabs_force_alignment_to_srt(
     api_key: str = None,
     max_chars_per_line: int = 20,  # Changed default for Chinese
     language: str = 'chinese',  # 保持兼容性参数
-    use_semantic_segmentation: bool = True  # New parameter for AI semantic segmentation
+    use_semantic_segmentation: bool = True,  # New parameter for AI semantic segmentation
+    model: str = None  # Gemini model to use, defaults to GEMINI_MODEL
 ) -> Tuple[bool, str]:
     """
     使用ElevenLabs Force Alignment API生成SRT字幕文件
@@ -119,7 +120,7 @@ def elevenlabs_force_alignment_to_srt(
         if use_semantic_segmentation:
             # Use new Gemini semantic segmentation
             srt_success, srt_result = _elevenlabs_semantic_srt_with_gemini(
-                words, output_filepath, input_text, max_chars_per_line, language
+                words, output_filepath, input_text, max_chars_per_line, language, model
             )
         else:
             # Use original simple segmentation
@@ -393,7 +394,8 @@ def _elevenlabs_semantic_srt_with_gemini(
     output_filepath: str,
     original_text: str,
     max_chars_per_line: int = 20,
-    language: str = 'chinese'
+    language: str = 'chinese',
+    model: str = None
 ) -> Tuple[bool, str]:
     """
     Use Gemini AI for semantic segmentation and bilingual SRT generation
@@ -432,7 +434,9 @@ def _elevenlabs_semantic_srt_with_gemini(
         prompt = _create_elevenlabs_semantic_prompt(words, adjusted_max_chars)
         
         # Call Gemini
-        model = genai.GenerativeModel(GEMINI_MODEL)
+        # Use provided model or default to GEMINI_MODEL
+        model_name = model if model else GEMINI_MODEL
+        model = genai.GenerativeModel(model_name)
         
         print("🚀 Calling Gemini for semantic segmentation...")
         start_time = time.time()
@@ -545,6 +549,7 @@ def cli():
     parser.add_argument('-l', '--language', default='chinese', help='Language code')
     parser.add_argument('--no-semantic', action='store_true', help='Disable semantic segmentation')
     parser.add_argument('--api-key', help='ElevenLabs API key (overrides .env)')
+    parser.add_argument('--model', default=None, help=f'Gemini model to use (default: {GEMINI_MODEL})')
     
     args = parser.parse_args()
     
@@ -563,7 +568,8 @@ def cli():
         api_key=args.api_key,
         max_chars_per_line=args.max_chars,
         language=args.language,
-        use_semantic_segmentation=not args.no_semantic
+        use_semantic_segmentation=not args.no_semantic,
+        model=args.model
     )
     
     if success:

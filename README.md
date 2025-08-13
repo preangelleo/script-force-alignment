@@ -74,7 +74,8 @@ success, result = elevenlabs_force_alignment_to_srt(
     output_filepath="output/subtitles.srt",
     max_chars_per_line=20,
     language='chinese',
-    use_semantic_segmentation=True  # Enable AI segmentation
+    use_semantic_segmentation=True,  # Enable AI segmentation
+    model='gemini-2.0-flash'  # Optional: specify Gemini model
 )
 
 if success:
@@ -144,7 +145,8 @@ elevenlabs_force_alignment_to_srt(
     api_key: str = None,       # Optional API key override
     max_chars_per_line: int = 20,  # Max characters per line
     language: str = 'chinese',     # Language code
-    use_semantic_segmentation: bool = True  # Enable AI segmentation
+    use_semantic_segmentation: bool = True,  # Enable AI segmentation
+    model: str = None          # Gemini model (default: gemini-2.0-flash)
 ) -> Tuple[bool, str]
 ```
 
@@ -157,6 +159,11 @@ elevenlabs_force_alignment_to_srt(
 - **max_chars_per_line**: Maximum characters per subtitle line
 - **language**: Language of the content (e.g., 'chinese', 'english')
 - **use_semantic_segmentation**: Enable AI-powered semantic breaking
+- **model**: Gemini model to use (default: 'gemini-2.0-flash'). Options:
+  - `'gemini-2.0-flash'`: Fast and efficient (default)
+  - `'gemini-2.0-flash-exp'`: Experimental features
+  - `'gemini-1.5-pro'`: Higher quality output
+  - `'gemini-2.0-flash-thinking'`: Complex reasoning
 
 ### Returns
 

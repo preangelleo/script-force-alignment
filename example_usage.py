@@ -52,6 +52,12 @@ USE_SEMANTIC_SEGMENTATION = True  # True: Use AI for smart segmentation
 # - True: Uses Gemini AI to create natural, meaningful subtitle segments
 # - False: Uses simple character-based segmentation
 
+# Gemini model configuration (optional)
+GEMINI_MODEL = None  # Use default model (gemini-2.0-flash)
+# Example: GEMINI_MODEL = "gemini-2.0-flash-exp"  # For experimental features
+# Example: GEMINI_MODEL = "gemini-1.5-pro"  # For higher quality
+# Example: GEMINI_MODEL = "gemini-2.0-flash-thinking"  # For complex reasoning
+
 # Advanced configuration (optional)
 API_KEY_OVERRIDE = None  # Set to override the .env file API key
 # Example: API_KEY_OVERRIDE = "xi-abc123..."
@@ -101,6 +107,8 @@ def generate_subtitles():
     print(f"   Language: {LANGUAGE}")
     print(f"   Max chars/line: {MAX_CHARS_PER_LINE}")
     print(f"   Semantic AI: {'Enabled' if USE_SEMANTIC_SEGMENTATION else 'Disabled'}")
+    if GEMINI_MODEL:
+        print(f"   Gemini Model: {GEMINI_MODEL}")
     print()
     
     # Generate subtitles
@@ -113,7 +121,8 @@ def generate_subtitles():
         api_key=API_KEY_OVERRIDE,
         max_chars_per_line=MAX_CHARS_PER_LINE,
         language=LANGUAGE,
-        use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION
+        use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION,
+        model=GEMINI_MODEL
     )
     
     # Report results
@@ -176,7 +185,8 @@ def batch_process_files(file_list):
             output_filepath=output_path,
             max_chars_per_line=MAX_CHARS_PER_LINE,
             language=LANGUAGE,
-            use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION
+            use_semantic_segmentation=USE_SEMANTIC_SEGMENTATION,
+            model=GEMINI_MODEL
         )
         
         results.append({
