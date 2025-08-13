@@ -1,3 +1,7 @@
+# Claude Code and Swarm
+.claude-flow/
+.swarm/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -48,6 +52,7 @@ env/
 htmlcov/
 .tox/
 .hypothesis/
+test.py
 
 # Output files
 *.srt
