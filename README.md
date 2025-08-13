@@ -108,6 +108,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
    - Sign up at [ElevenLabs](https://elevenlabs.io/)
    - Go to your profile settings
    - Copy your API key
+   - **Important**: Enable the Force Alignment feature in your API settings (it's disabled by default)
 
 2. **Google Gemini API Key**:
    - Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
