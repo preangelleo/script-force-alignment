@@ -352,6 +352,16 @@ For issues, questions, or suggestions:
 - Open an issue on GitHub
 - Contact: your-email@example.com
 
+## 📝 Changelog
+
+### v1.2.1 (2025-01-15)
+- **Fixed**: Double English subtitle issue when language is set to English
+- **Improved**: System prompt now correctly handles English-only content without generating duplicate translations
+- **Updated**: Both system_prompt.txt and fallback prompt to prevent redundant English subtitles
+
+### v1.2.0
+- Previous release features
+
 ## 🚦 Project Status
 
 ![Python](https://img.shields.io/badge/python-3.7+-blue.svg)

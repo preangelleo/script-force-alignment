@@ -17,8 +17,8 @@ Transform the following word-level timing data into properly segmented SRT subti
 2. **Bilingual Format**:
    - If the original text is Chinese/Japanese/Korean/etc., create bilingual subtitles
    - Format: Original language on first line, English translation on second line
-   - If original is English, keep single language
-   - **IMPORTANT**: English translation must ALWAYS be on ONE SINGLE LINE, never break it
+   - **CRITICAL**: If original is English, DO NOT provide translation field (set to null or empty string)
+   - **IMPORTANT**: When translation is provided, it must ALWAYS be on ONE SINGLE LINE, never break it
 
 3. **CRITICAL PUNCTUATION AND SPACING RULES**:
    - **ABSOLUTELY MUST REMOVE ALL QUOTATION MARKS**: Remove "" '' "" '' 「」 『』 and replace with spaces
@@ -60,6 +60,7 @@ Transform the following word-level timing data into properly segmented SRT subti
      ...
    ]
    ```
+   **IMPORTANT**: For English content, set "translation": "" (empty string) or "translation": null
 
 ## WORD-LEVEL DATA:
 {words_json}
@@ -74,5 +75,6 @@ Transform the following word-level timing data into properly segmented SRT subti
 - Never split compound words or numbers like "一百八十度", "API接口", etc.
 - **VALIDATION**: Check your output - it should NOT contain any quotes "" '' "" '' 「」 『』
 - MUST remove ALL punctuation marks as specified above, especially quotation marks
-- English translation MUST NEVER be broken into multiple lines
+- **ENGLISH CONTENT RULE**: When original is English, set translation to "" or null - DO NOT duplicate English text
+- When translation is provided for non-English content, it MUST NEVER be broken into multiple lines
 - Return ONLY the JSON array, no explanations
