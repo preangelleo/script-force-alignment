@@ -56,7 +56,7 @@ success, result = generator.generate(
     max_chars_per_line=20,
     language='chinese',
     use_semantic_segmentation=True,
-    model='gemini-2.0-flash'  # Optional: specify Gemini model
+    model='gemini-2.5-flash'  # Optional: specify Gemini model
 )
 
 if success:
@@ -197,7 +197,7 @@ class SRTGenerator:
     def __init__(
         elevenlabs_api_key: str,
         gemini_api_key: Optional[str] = None,
-        default_model: str = 'gemini-2.0-flash',
+        default_model: str = 'gemini-2.5-flash',
         system_prompt: Optional[str] = None
     )
 ```
@@ -248,11 +248,11 @@ elevenlabs_force_alignment_to_srt(
 - **max_chars_per_line**: Maximum characters per subtitle line
 - **language**: Language of the content (e.g., 'chinese', 'english')
 - **use_semantic_segmentation**: Enable AI-powered semantic breaking
-- **model**: Gemini model to use (default: 'gemini-2.0-flash'). Options:
-  - `'gemini-2.0-flash'`: Fast and efficient (default)
-  - `'gemini-2.0-flash-exp'`: Experimental features
+- **model**: Gemini model to use (default: 'gemini-2.5-flash'). Options:
+  - `'gemini-2.5-flash'`: Fast and efficient (default)
+  - `'gemini-2.5-flash'`: Experimental features
   - `'gemini-1.5-pro'`: Higher quality output
-  - `'gemini-2.0-flash-thinking'`: Complex reasoning
+  - `'gemini-2.5-flash-thinking'`: Complex reasoning
 
 ### Returns
 

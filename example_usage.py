@@ -36,10 +36,10 @@ LANGUAGE = 'chinese'  # Options: 'chinese', 'english', 'spanish', 'french', etc.
 USE_SEMANTIC_SEGMENTATION = True  # True: AI segmentation, False: simple segmentation
 
 # Gemini model (optional)
-GEMINI_MODEL = None  # Use default (gemini-2.0-flash)
-# GEMINI_MODEL = "gemini-2.0-flash-exp"  # For experimental features
+GEMINI_MODEL = None  # Use default (gemini-2.5-flash)
+# GEMINI_MODEL = "gemini-2.5-flash"  # For experimental features
 # GEMINI_MODEL = "gemini-1.5-pro"  # For higher quality
-# GEMINI_MODEL = "gemini-2.0-flash-thinking"  # For complex reasoning
+# GEMINI_MODEL = "gemini-2.5-flash-thinking"  # For complex reasoning
 
 # Custom system prompt (optional)
 CUSTOM_SYSTEM_PROMPT = None  # Use default from system_prompt.txt
@@ -168,7 +168,7 @@ def example_with_custom_model():
         audio_file=AUDIO_FILE,
         text=TEXT_CONTENT,
         output_file="custom_model_subtitles.srt",
-        model="gemini-2.0-flash-exp"  # Use experimental model
+        model="gemini-2.5-flash"  # Use experimental model
     )
     
     return success, result

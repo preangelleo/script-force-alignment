@@ -11,7 +11,7 @@ except:
 # Get environment variables (may be None)
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = 'gemini-2.0-flash'
+GEMINI_MODEL = 'gemini-2.5-flash'
 
 # Load default system prompt
 DEFAULT_SYSTEM_PROMPT = None
